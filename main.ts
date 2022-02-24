@@ -56,7 +56,7 @@ export default class MyPlugin extends Plugin {
 							.setTitle("Review: start over 💀")
 							.setIcon("document")
 							.onClick(async () => {
-								updateEase(file, (ease: number, interval: number) => [ease * 0.8 < 1.3 ? 1.3 : ease * 0.8, 10]);
+								updateEase(file, (ease: number, interval: number) => [ease * 0.8 < 1.3 ? 1.3 : ease * 0.8, 11]);
 							});
 					});
 				}
