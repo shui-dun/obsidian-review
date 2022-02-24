@@ -1,72 +1,106 @@
-## Obsidian Sample Plugin
+# Obsidian Review Plugin
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+基于简化了的 `Anki` 算法，安排你的复习笔记的计划
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## 安装与使用
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+### 启用该插件
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- 复制 `manifest.json`, `main.js` 到`your-vault/.obsidian/plugins/obsidian-review`下
 
-### First time developing plugins?
+- 打开 `obsidian` ，启用 `review` 插件
 
-Quick starting guide for new plugin devs:
+- 效果如下：
 
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+  ![image-20220224104626126](assets/image-20220224104626126.png)
 
-### Releasing new releases
+### 编写template文件
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+- 安装 `templater-obsidian` 插件
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+- 编写 `template` 文件，包含以下语句：
+  ```
+  ---
+  ctime: <% tp.file.creation_date('YYYY-MM-DD') %>
+  review: [2.5, 10.00]
+  ---
+  ```
+  
+- 其中 `review[0]` 表示初始熟悉度， `review[1]` 表示初始复习间隔
 
-### Adding your plugin to the community plugin list
+- 应用该 `template` 于你想要复习的文件，否则无法正常使用 `review` 插件
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### 编写“待复习笔记一览”文件
 
-### How to use
+该文件会展示出你待复习的笔记列表，以及复习情况的统计
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
+- 为文件的 `front-matter` 添加 `tags` 属性，该属性用于选择欲复习笔记的 `tag` ，即，不在其中的笔记不会被复习
+  ```
+  ---
+  tags: [ CS , 艺术 ]
+  ---
+  ```
 
-### Manually installing the plugin
+  如果不想过滤，就写成`tags: [ ]`
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+- 安装 `dataviewjs` 插件，编写 `dataviewjs` 代码
+  ```
+  // 从文件头读取要筛选的标签
+  let tags = dv.current().tags;
+  tags = tags.map(b => '#' + b);
+  
+  // 查询条件
+  let condition = '"" and -"template" and -"计划" and -#noreview';
+  
+  // 将那些标签添加到查询条件中
+  if (tags.length != 0) {
+    condition += ' and (';
+    condition += tags.join(' or ');
+    condition += ')';
+  }
+  
+  // 待复习笔记的列表
+  dv.table(["File", "interval"], dv.pages(condition)
+    .where(b => b.review)
+    .sort(b => b.ctime)
+    .sort(b => b.review[1])
+    .limit(21)
+    .map(b => [b.file.link, b.review[1]])
+  );
+  
+  // 换行
+  dv.paragraph('\n');
+  
+  // 统计复习熟悉度的列表
+  dv.table(["ease", "count"], dv.pages(condition)
+    .where(b => b.review)
+    .groupBy(b => b.review[0])
+    .sort(b => b.key)
+    .map(b => [b.key, b.rows.length])
+  );
+  
+  // 换行
+  dv.paragraph('\n');
+  
+  // 统计复习间隔的列表
+  dv.table(["interval", "count"], dv.pages(condition)
+    .where(b => b.review)
+    .groupBy(b => b.review[1])
+    .sort(b => b.key)
+    .map(b => [b.key, b.rows.length])
+  );
+  ```
+  
+- 效果：
+  ![image-20220224105735335](assets/image-20220224105735335.png)
+  ![image-20220224105803573](assets/image-20220224105803573.png)
 
-### Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+## 算法
 
+在 `anki` 的基础上进行简化：
 
-### API Documentation
+-  `easy` ： `(ease, interval) => [ease * 1.2, interval * ease * 1.3]` 
+-  `good` ： `(ease, interval) => [ease * 1.05, interval * ease]` 
+-  `hard` ： `(ease, interval) => [ease * 0.85 < 1.3 ? 1.3 : ease * 0.85, interval * 1.2]` 
+-  `start over` ： `(ease, interval) => [ease * 0.8 < 1.3 ? 1.3 : ease * 0.8, 10]` 
 
-See https://github.com/obsidianmd/obsidian-api
