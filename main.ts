@@ -29,7 +29,7 @@ export default class MyPlugin extends Plugin {
 				if (file instanceof TFile && file.extension === "md") {
 					menu.addItem((item) => {
 						item
-							.setTitle("Review: feels easy 😁")
+							.setTitle("Review: 感觉容易 😁")
 							.setIcon("document")
 							.onClick(async () => {
 								updateEase(file, (ease: number, interval: number) => [ease * 1.2, interval * ease * 1.3]);
@@ -37,7 +37,7 @@ export default class MyPlugin extends Plugin {
 					});
 					menu.addItem((item) => {
 						item
-							.setTitle("Review: feels good 🙂")
+							.setTitle("Review: 感觉不错 🙂")
 							.setIcon("document")
 							.onClick(async () => {
 								updateEase(file, (ease: number, interval: number) => [ease * 1.05, interval * ease]);
@@ -45,7 +45,7 @@ export default class MyPlugin extends Plugin {
 					});
 					menu.addItem((item) => {
 						item
-							.setTitle("Review: feels hard 😭")
+							.setTitle("Review: 感觉困难 😭")
 							.setIcon("document")
 							.onClick(async () => {
 								updateEase(file, (ease: number, interval: number) => [ease * 0.85 < 1.3 ? 1.3 : ease * 0.85, interval * 1.2]);
@@ -53,10 +53,10 @@ export default class MyPlugin extends Plugin {
 					});
 					menu.addItem((item) => {
 						item
-							.setTitle("Review: start over 💀")
+							.setTitle("Review: 推迟复习 ➡️")
 							.setIcon("document")
 							.onClick(async () => {
-								updateEase(file, (ease: number, interval: number) => [ease * 0.8 < 1.3 ? 1.3 : ease * 0.8, 11]);
+								updateEase(file, (ease: number, interval: number) => [ease, interval * 1.2]);
 							});
 					});
 				}

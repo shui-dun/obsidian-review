@@ -102,5 +102,5 @@
 -  `easy` ： `(ease, interval) => [ease * 1.2, interval * ease * 1.3]` 
 -  `good` ： `(ease, interval) => [ease * 1.05, interval * ease]` 
 -  `hard` ： `(ease, interval) => [ease * 0.85 < 1.3 ? 1.3 : ease * 0.85, interval * 1.2]` 
--  `start over` ： `(ease, interval) => [ease * 0.8 < 1.3 ? 1.3 : ease * 0.8, 11]` 
+-  `delay` ： `(ease, interval) => [ease, interval * 1.2]` 
 
