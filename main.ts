@@ -27,7 +27,7 @@ var updateReviewInFrontMatter = async function (file: TFile, foo: Function) {
 	// 读取文件内容
 	let fileText: string = await this.app.vault.read(file);
 	// 从frontmatter中读取复习的难易度和复习间隔
-	let [originEase, originInterval, originDate] = frontmatter["review"];
+	let [originEase, originInterval, originDate] = frontmatter["sr"];
 	originDate = new Date(originDate);
 	// 更新复习的难易度和复习间隔，easy、good、hard、start over的策略各不相同
 	let [destEase, destInterval, destDate] = foo(originEase, originInterval, originDate);
@@ -37,7 +37,7 @@ var updateReviewInFrontMatter = async function (file: TFile, foo: Function) {
 	// 格式化时间
 	destDate = dateFormat("YYYY-mm-dd", destDate);
 	// 更新frontmatter
-	fileText = fileText.replace(/(\-\-\-[\s\S]+?review:\s+\[\s*)[\.\d]+\s*,\s*[\.\d]+\s*,\s*\d{4}\-\d{2}\-\d{2}\s*(\][\s\S]+?\-\-\-)/, `$1${destEase}, ${destInterval}, ${destDate}$2`);
+	fileText = fileText.replace(/(\-\-\-[\s\S]+?sr:\s+\[\s*)[\.\d]+\s*,\s*[\.\d]+\s*,\s*\d{4}\-\d{2}\-\d{2}\s*(\][\s\S]+?\-\-\-)/, `$1${destEase},${destInterval},${destDate}$2`);
 	// 写入文件
 	this.app.vault.modify(file, fileText);
 	// 弹出通知
