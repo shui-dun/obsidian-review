@@ -6,6 +6,8 @@
 
 ### 启用该插件
 
+- `npm run build`
+
 - 复制 `manifest.json`, `main.js` 到`your-vault/.obsidian/plugins/obsidian-review`下
 
 - 打开 `obsidian` ，启用 `review` 插件
