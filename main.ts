@@ -13,8 +13,8 @@ export default class MyPlugin extends Plugin {
 							.onClick(async () => {
 								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									let newEase = ease * 1.2;
-									let [newInterval, newDate] = this.adjustIntervalAndDate(interval * newEase * 1.3);
-									return [newEase, newInterval, newDate];
+									let newInterval = interval * newEase * 1.3;
+									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
 							});
 					});
@@ -25,8 +25,8 @@ export default class MyPlugin extends Plugin {
 							.onClick(async () => {
 								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									let newEase = ease;
-									let [newInterval, newDate] = this.adjustIntervalAndDate(interval * newEase);
-									return [newEase, newInterval, newDate];
+									let newInterval = interval * newEase;
+									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
 							});
 					});
@@ -37,8 +37,8 @@ export default class MyPlugin extends Plugin {
 							.onClick(async () => {
 								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									let newEase = ease * 0.85 < 1.3 ? 1.3 : ease * 0.85;
-									let [newInterval, newDate] = this.adjustIntervalAndDate(interval * 0.5 < 1.0 ? 1.0 : interval * 0.5);
-									return [newEase, newInterval, newDate];
+									let newInterval = interval * 0.5 < 1.0 ? 1.0 : interval * 0.5;
+									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
 							});
 					});
@@ -48,9 +48,7 @@ export default class MyPlugin extends Plugin {
 							.setIcon("document")
 							.onClick(async () => {
 								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
-									let newDate = new Date();
-									newDate.setDate(newDate.getDate() + 7);
-									return [ease, interval, newDate];
+									return [ease, interval, this.nextReviewDate(7.0)];
 								});
 							});
 					});
@@ -108,12 +106,11 @@ export default class MyPlugin extends Plugin {
 		new Notice(`ease: from ${originEase} to ${destEase}\ninterval: from ${originInterval} to ${destInterval}`);
 	}
 
-	// 微小地扰乱复习间隔（避免复习囤积到一天），并据此更新下次复习日期
-	adjustIntervalAndDate(originInterval: number) {
-		let newInterval = originInterval + Math.floor(Math.random() * 0.1 * originInterval);
+	// 得到新的下次复习日期
+	nextReviewDate(interval: number) {
 		let newDate = new Date();
-		newDate.setDate(newDate.getDate() + newInterval);
-		return [newInterval, newDate];
+		newDate.setDate(newDate.getDate() + Math.ceil(interval));
+		return newDate;
 	}
 
 }
