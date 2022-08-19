@@ -36,63 +36,34 @@
 
 该文件会展示出你待复习的笔记列表，以及复习情况的统计
 
-- 为文件的 `front-matter` 添加 `tags` 属性，该属性用于选择欲复习笔记的 `tag` ，即，不在其中的笔记不会被复习
-  ```
-  ---
-  tags: [ CS , 艺术 ]
-  ---
-  ```
+安装 `dataviewjs` 插件，编写 `dataviewjs` 代码
+```
+let condition = '"" and -"template" and -"计划"'; // 查询条件
 
-  如果不想过滤，就写成`tags: [ ]`
+// 今日复习的笔记的数目
+let todayReviewedCount = dv.pages(condition)
+  .where(b => b.sr)
+  .where(b => b.sr[2] - dv.duration(`${Math.ceil(b.sr[1])}day`) == dv.date('today'))
+  .groupBy(b => true)
+  .map(b => b.rows.length).values[0];
+if (todayReviewedCount == undefined) todayReviewedCount = 0;
 
-- 安装 `dataviewjs` 插件，编写 `dataviewjs` 代码
-  ```
-  // 从文件头读取要筛选的标签
-  let tags = dv.current().tags;
-  tags = tags.map(b => '#' + b);
-  
-  // 查询条件
-  let condition = '"" and -"template" and -"计划" and -#noreview';
-  
-  // 将那些标签添加到查询条件中
-  if (tags.length != 0) {
-    condition += ' and (';
-    condition += tags.join(' or ');
-    condition += ')';
-  }
-  
-  // 所有笔记的数目
-  let sumCount = dv.pages(condition)
-    .where(b => b.review)
-    .groupBy(b => true)
-    .map(b => b.rows.length).values[0];
-  
-  // 待复习笔记的数目
-  let waitForReviewCount = dv.pages(condition)
-    .where(b => b.review)
-    .where(b => b.review[2] <= dv.date('today'))
-    .groupBy(b => true)
-    .map(b => b.rows.length).values[0];
-  
-  if (waitForReviewCount == undefined) {
-    waitForReviewCount = 0;
-  }
-  
-  // 展示待复习和所有笔记的数目
-  dv.paragraph(`待复习：***${waitForReviewCount}***，所有：***${sumCount}***`)
-  
-  // 待复习笔记的列表
-  dv.table(["File", "date"], dv.pages(condition)
-    .where(b => b.review)
-    .where(b => b.review[2] <= dv.date('today'))
-    .sort(b => b.review[2])
-    .limit(17)
-    .map(b => [b.file.link, b.review[2]])
-  );
-  ```
-  
-- 效果：
-  ![image-20220225230246425](assets/image-20220225230246425.png)
+// 应该复习的笔记数目上限
+let waitForReviewCount = 42 - todayReviewedCount;
+if (waitForReviewCount < 0) waitForReviewCount = 0;
+
+// 待复习笔记的列表
+dv.table(["File"], dv.pages(condition)
+  .where(b => b.sr)
+  .where(b => b.sr[2] <= dv.date('today'))
+  .sort(b => Math.random())
+  .limit(waitForReviewCount)
+  .map(b => [b.file.link])
+);
+```
+
+效果如下：
+![image-20220225230246425](assets/image-20220225230246425.png)
 
 ## 算法
 
@@ -101,9 +72,4 @@
 -  `easy` ： `(ease, interval) => [ease * 1.2, interval * newEase * 1.3]` 
 -  `good` ： `(ease, interval) => [ease, interval * newEase]` 
 -  `hard` ： `(ease, interval) => [ease * 0.85 < 1.3 ? 1.3 : ease * 0.85, interval * 0.5 < 1.0 ? 1.0 : interval * 0.5]` 
-
-另外：
-
--  微小地扰乱（增加）复习间隔，以避免复习囤积到一天
 -  `delay` ：推迟7天复习
-
