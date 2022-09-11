@@ -38,26 +38,43 @@
 
 安装 `dataviewjs` 插件，编写 `dataviewjs` 代码
 ```
-let condition = '"" and -"template" and -"计划"'; // 查询条件
+let condition = 'your '; // 查询条件
+
+// 待复习笔记的数目
+let waitReviewCount = dv.pages(condition)
+  .where(b => b.sr)
+  .where(b => b.sr[2] <= dv.date('today'))
+  .groupBy(b => true)
+  .map(b => b.rows.length).values[0];
+
+if (waitReviewCount == undefined)
+  waitReviewCount = 0;
+
+dv.paragraph(`待复习总数：***${waitReviewCount}***`)
 
 // 今日复习的笔记的数目
 let todayReviewedCount = dv.pages(condition)
   .where(b => b.sr)
+  .where(b => b.ctime - 0 != dv.date('today'))
   .where(b => b.sr[2] - dv.duration(`${Math.ceil(b.sr[1])}day`) == dv.date('today'))
   .groupBy(b => true)
   .map(b => b.rows.length).values[0];
-if (todayReviewedCount == undefined) todayReviewedCount = 0;
+  
+if (todayReviewedCount == undefined) 
+  todayReviewedCount = 0;
 
 // 应该复习的笔记数目上限
-let waitForReviewCount = 42 - todayReviewedCount;
-if (waitForReviewCount < 0) waitForReviewCount = 0;
+let waitForReviewLimit = 30 - todayReviewedCount;
+
+if (waitForReviewLimit < 0) 
+  waitForReviewLimit = 0;
 
 // 待复习笔记的列表
 dv.table(["File"], dv.pages(condition)
   .where(b => b.sr)
   .where(b => b.sr[2] <= dv.date('today'))
-  .sort(b => Math.random())
-  .limit(waitForReviewCount)
+  .sort(b => b.sr[2])
+  .limit(waitForReviewLimit)
   .map(b => [b.file.link])
 );
 ```
