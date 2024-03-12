@@ -37,24 +37,27 @@
 该文件会展示出你待复习的笔记列表，以及复习情况的统计，注意该文件名称必须叫做review.md
 
 安装 `dataviewjs` 插件，编写 `dataviewjs` 代码
-```
-let condition = 'your '; // 查询条件
+
+```dataviewjs
+// 基础过滤得到的笔记
+let basicNotes = dv
+  .pages('"" and -"template" and -"计划" and -"assets"')
+  .where(b => b.sr);
+
+// 待复习的笔记
+let toBeReviewedNotes = basicNotes
+  .where(b => b.sr[2] <= dv.date('today'));
 
 // 待复习笔记的数目
-let waitReviewCount = dv.pages(condition)
-  .where(b => b.sr)
-  .where(b => b.sr[2] <= dv.date('today'))
+let waitReviewCount = toBeReviewedNotes
   .groupBy(b => true)
   .map(b => b.rows.length).values[0];
 
 if (waitReviewCount == undefined)
   waitReviewCount = 0;
 
-dv.paragraph(`待复习总数：***${waitReviewCount}***`)
-
 // 今日复习的笔记的数目
-let todayReviewedCount = dv.pages(condition)
-  .where(b => b.sr)
+let todayReviewedCount = basicNotes
   .where(b => b.ctime - 0 != dv.date('today'))
   .where(b => b.sr[2] - dv.duration(`${Math.ceil(b.sr[1])}day`) == dv.date('today'))
   .groupBy(b => true)
@@ -63,21 +66,16 @@ let todayReviewedCount = dv.pages(condition)
 if (todayReviewedCount == undefined) 
   todayReviewedCount = 0;
 
-// 应该复习的笔记数目上限
-let waitForReviewLimit = 30 - todayReviewedCount;
-
-if (waitForReviewLimit < 0) 
-  waitForReviewLimit = 0;
+dv.paragraph(`###### **${waitReviewCount}** to rv, **${todayReviewedCount}** rvd`)
 
 // 待复习笔记的列表
-dv.table(["File"], dv.pages(condition)
-  .where(b => b.sr)
-  .where(b => b.sr[2] <= dv.date('today'))
+dv.table(["Notes to be reviewd"], toBeReviewedNotes
   .sort(b => b.sr[2])
-  .limit(waitForReviewLimit)
+  .limit(7)
   .map(b => [b.file.link])
 );
 ```
+
 
 效果如下：
 ![image-20220225230246425](assets/image-20220225230246425.png)
