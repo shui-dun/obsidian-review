@@ -3,10 +3,10 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 export default class MyPlugin extends Plugin {
 
 	async onload() {
-		addIcon("review-easy", `<circle cx="50" cy="50" r="50" fill="black"/>`);
-		addIcon("review-good", `<circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="20" />`);
-		addIcon("review-hard", `<circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="15" />`);
-		addIcon("review-start-over", `<circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="10" />`);
+		addIcon("review-easy", `<circle cx="50" cy="50" r="40" fill="none" stroke="grey" stroke-width="19" />`);
+		addIcon("review-good", `<circle cx="50" cy="50" r="40" fill="none" stroke="grey" stroke-width="16" />`);
+		addIcon("review-hard", `<circle cx="50" cy="50" r="40" fill="none" stroke="grey" stroke-width="13" />`);
+		addIcon("review-start-over", `<circle cx="50" cy="50" r="40" fill="none" stroke="grey" stroke-width="10" />`);
 
 
 		this.addRibbonIcon("review-easy", "Review: 容易 😁", async () => {
@@ -109,14 +109,14 @@ export default class MyPlugin extends Plugin {
 
 	// 跳转到文件复习列表
 	async jumpToReviewList() {
-		// 等待一段时间使得索引更新，不然跳转回文件复习列表之后文件复习列表还是旧的
-		await new Promise(resolve => setTimeout(resolve, 200));
 		let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
 		// 如果上一个文件名不包含“review.md”，则返回
 		if (!previousFilePath.includes("review.md")) {
 			new Notice("Jump Disabled", 500);
 			return;
 		}
+		// 等待一段时间使得索引更新，不然跳转回文件复习列表之后文件复习列表还是旧的
+		await new Promise(resolve => setTimeout(resolve, 200));
 		let previousFile = this.app.vault.getAbstractFileByPath(previousFilePath);
 		if (!(previousFile instanceof TFile)) {
 			console.error("obsidian-review: The last opened file is not found or not a TFile.");
