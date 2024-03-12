@@ -1,69 +1,50 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, FrontMatterCache } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, FrontMatterCache, addIcon } from 'obsidian';
 
 export default class MyPlugin extends Plugin {
 
 	async onload() {
-		this.registerEvent(
-			this.app.workspace.on("file-menu", (menu, file: TAbstractFile) => {
-				if (file instanceof TFile && file.extension === "md") {
-					menu.addItem((item) => {
-						item
-							.setTitle("Review: 容易 😁")
-							.setIcon("document")
-							.onClick(async () => {
-								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
-									let newEase = ease * 1.2;
-									let newInterval = interval * newEase * 1.3;
-									return [newEase, newInterval, this.nextReviewDate(newInterval)];
-								});
-								await this.jumpToReviewList();
-							});
-					});
-					menu.addItem((item) => {
-						item
-							.setTitle("Review: 不错 🙂")
-							.setIcon("document")
-							.onClick(async () => {
-								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
-									let newEase = ease;
-									let newInterval = interval * newEase;
-									return [newEase, newInterval, this.nextReviewDate(newInterval)];
-								});
-								await this.jumpToReviewList();
-							});
-					});
-					menu.addItem((item) => {
-						item
-							.setTitle("Review: 困难 😭")
-							.setIcon("document")
-							.onClick(async () => {
-								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
-									let newEase = ease * 0.85 < 1.3 ? 1.3 : ease * 0.85;
-									let newInterval = interval * 0.5 < 1.0 ? 1.0 : interval * 0.5;
-									return [newEase, newInterval, this.nextReviewDate(newInterval)];
-								});
-								await this.jumpToReviewList();
-							});
-					});
-					menu.addItem((item) => {
-						item
-							.setTitle("Review: 推迟 ➡️")
-							.setIcon("document")
-							.onClick(async () => {
-								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
-									return [ease, interval, this.nextReviewDate(7.0)];
-								});
-								await this.jumpToReviewList();
-							});
-					});
-				}
-			})
-		);
+		addIcon("review-easy", `<circle cx="50" cy="50" r="50" fill="black"/>`);
+		addIcon("review-good", `<circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="20" />`);
+		addIcon("review-hard", `<circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="15" />`);
+		addIcon("review-start-over", `<circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="10" />`);
 
+
+		this.addRibbonIcon("review-easy", "Review: 容易 😁", async () => {
+			await this.updateReviewInFrontMatterOfCurrentFile((ease: number, interval: number, date: Date) => {
+				let newEase = ease * 1.2;
+				let newInterval = interval * newEase * 1.3;
+				return [newEase, newInterval, this.nextReviewDate(newInterval)];
+			});
+			await this.jumpToReviewList();
+		});
+
+		this.addRibbonIcon("review-good", "Review: 不错 🙂", async () => {
+			await this.updateReviewInFrontMatterOfCurrentFile((ease: number, interval: number, date: Date) => {
+				let newEase = ease;
+				let newInterval = interval * newEase;
+				return [newEase, newInterval, this.nextReviewDate(newInterval)];
+			});
+			await this.jumpToReviewList();
+		});
+
+		this.addRibbonIcon("review-hard", "Review: 困难 😭", async () => {
+			await this.updateReviewInFrontMatterOfCurrentFile((ease: number, interval: number, date: Date) => {
+				let newEase = ease * 0.85 < 1.3 ? 1.3 : ease * 0.85;
+				let newInterval = interval * 0.5 < 1.0 ? 1.0 : interval * 0.5;
+				return [newEase, newInterval, this.nextReviewDate(newInterval)];
+			});
+			await this.jumpToReviewList();
+		});
+
+		this.addRibbonIcon("review-start-over", "Review: 推迟 ➡️", async () => {
+			await this.updateReviewInFrontMatterOfCurrentFile((ease: number, interval: number, date: Date) => {
+				return [ease, interval, this.nextReviewDate(7.0)];
+			});
+			await this.jumpToReviewList();
+		});
 	}
 
 	onunload() {
-
 	}
 
 	//格式化日期
@@ -84,6 +65,15 @@ export default class MyPlugin extends Plugin {
 			};
 		};
 		return fmt;
+	}
+
+	async updateReviewInFrontMatterOfCurrentFile(foo: Function) {
+		let file = this.app.workspace.getActiveFile();
+		if (!file) {
+			console.error("obsidian-review: No active file to update review.");
+			return;
+		}
+		await this.updateReviewInFrontMatter(file, foo);
 	}
 
 	// 更新frontmatter中的review属性
