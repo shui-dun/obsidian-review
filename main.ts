@@ -16,7 +16,7 @@ export default class MyPlugin extends Plugin {
 									let newInterval = interval * newEase * 1.3;
 									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
-								this.jumpToPreviousFile();
+								await this.jumpToReviewList();
 							});
 					});
 					menu.addItem((item) => {
@@ -29,7 +29,7 @@ export default class MyPlugin extends Plugin {
 									let newInterval = interval * newEase;
 									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
-								this.jumpToPreviousFile();
+								await this.jumpToReviewList();
 							});
 					});
 					menu.addItem((item) => {
@@ -42,7 +42,7 @@ export default class MyPlugin extends Plugin {
 									let newInterval = interval * 0.5 < 1.0 ? 1.0 : interval * 0.5;
 									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
-								this.jumpToPreviousFile();
+								await this.jumpToReviewList();
 							});
 					});
 					menu.addItem((item) => {
@@ -53,7 +53,7 @@ export default class MyPlugin extends Plugin {
 								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									return [ease, interval, this.nextReviewDate(7.0)];
 								});
-								this.jumpToPreviousFile();
+								await this.jumpToReviewList();
 							});
 					});
 				}
@@ -117,21 +117,25 @@ export default class MyPlugin extends Plugin {
 		return newDate;
 	}
 
-	// 跳转到上一个文件
-	async jumpToPreviousFile() {
+	// 跳转到文件复习列表
+	async jumpToReviewList() {
 		let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
-		let previousFile = this.app.vault.getAbstractFileByPath(previousFilePath);
-		if (previousFile instanceof TFile) {
-			// 获取当前活动的leaf（leaf是指标签页）
-			let activeLeaf = this.app.workspace.activeLeaf;
-			// 在当前活动的leaf中直接打开文件
-			if (activeLeaf) {
-				await activeLeaf.openFile(previousFile);
-			} else {
-				console.error("obsidian-review: No active leaf to open the file in.");
-			}
-		} else {
-			console.error("obsidian-review: The last opened file is not found or not a TFile.");
+		// 如果上一个文件名不包含“review.md”，则返回
+		if (!previousFilePath.includes("review.md")) {
+			console.error("obsidian-review: The last opened file is not a review list.");
+			return;
 		}
+		let previousFile = this.app.vault.getAbstractFileByPath(previousFilePath);
+		if (!(previousFile instanceof TFile)) {
+			console.error("obsidian-review: The last opened file is not found or not a TFile.");
+			return;
+		}
+		// 获取当前活动的leaf（leaf是指标签页）
+		let activeLeaf = this.app.workspace.activeLeaf;
+		if (!activeLeaf) {
+			console.error("obsidian-review: No active leaf to open the file in.");
+			return;
+		}
+		await activeLeaf.openFile(previousFile);
 	}
 }
