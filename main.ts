@@ -119,6 +119,8 @@ export default class MyPlugin extends Plugin {
 
 	// 跳转到文件复习列表
 	async jumpToReviewList() {
+		// 等待一段时间使得索引更新，不然跳转回文件复习列表之后文件复习列表还是旧的
+		await new Promise(resolve => setTimeout(resolve, 200));
 		let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
 		// 如果上一个文件名不包含“review.md”，则返回
 		if (!previousFilePath.includes("review.md")) {
