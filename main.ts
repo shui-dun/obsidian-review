@@ -124,7 +124,7 @@ export default class MyPlugin extends Plugin {
 		let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
 		// 如果上一个文件名不包含“review.md”，则返回
 		if (!previousFilePath.includes("review.md")) {
-			new Notice("Jump to review list disabled: The last opened file is not review list.");
+			new Notice("Jump Disabled", 500);
 			return;
 		}
 		let previousFile = this.app.vault.getAbstractFileByPath(previousFilePath);
