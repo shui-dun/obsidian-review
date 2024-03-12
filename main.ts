@@ -102,6 +102,10 @@ export default class MyPlugin extends Plugin {
 
 	// 得到新的下次复习日期
 	nextReviewDate(interval: number) {
+		// 修复有时候当天复习笔记却显示为下一天复习的笔记的bug：
+		// 只保留1位小数，以与updateReviewInFrontMatter中的destEase = Number(destEase).toFixed(1);相一致
+		// 例如，7.01在此时应该先被转化为7.0，否则Math.ceil(interval)会向上取整为8而非7
+		interval = parseFloat(Number(interval).toFixed(1));
 		let newDate = new Date();
 		newDate.setDate(newDate.getDate() + Math.ceil(interval));
 		return newDate;
