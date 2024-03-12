@@ -11,11 +11,12 @@ export default class MyPlugin extends Plugin {
 							.setTitle("Review: 容易 😁")
 							.setIcon("document")
 							.onClick(async () => {
-								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
+								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									let newEase = ease * 1.2;
 									let newInterval = interval * newEase * 1.3;
 									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
+								this.jumpToPreviousFile();
 							});
 					});
 					menu.addItem((item) => {
@@ -23,11 +24,12 @@ export default class MyPlugin extends Plugin {
 							.setTitle("Review: 不错 🙂")
 							.setIcon("document")
 							.onClick(async () => {
-								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
+								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									let newEase = ease;
 									let newInterval = interval * newEase;
 									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
+								this.jumpToPreviousFile();
 							});
 					});
 					menu.addItem((item) => {
@@ -35,11 +37,12 @@ export default class MyPlugin extends Plugin {
 							.setTitle("Review: 困难 😭")
 							.setIcon("document")
 							.onClick(async () => {
-								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
+								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									let newEase = ease * 0.85 < 1.3 ? 1.3 : ease * 0.85;
 									let newInterval = interval * 0.5 < 1.0 ? 1.0 : interval * 0.5;
 									return [newEase, newInterval, this.nextReviewDate(newInterval)];
 								});
+								this.jumpToPreviousFile();
 							});
 					});
 					menu.addItem((item) => {
@@ -47,9 +50,10 @@ export default class MyPlugin extends Plugin {
 							.setTitle("Review: 推迟 ➡️")
 							.setIcon("document")
 							.onClick(async () => {
-								this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
+								await this.updateReviewInFrontMatter(file, (ease: number, interval: number, date: Date) => {
 									return [ease, interval, this.nextReviewDate(7.0)];
 								});
+								this.jumpToPreviousFile();
 							});
 					});
 				}
@@ -113,4 +117,21 @@ export default class MyPlugin extends Plugin {
 		return newDate;
 	}
 
+	// 跳转到上一个文件
+	async jumpToPreviousFile() {
+		let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
+		let previousFile = this.app.vault.getAbstractFileByPath(previousFilePath);
+		if (previousFile instanceof TFile) {
+			// 获取当前活动的leaf（leaf是指标签页）
+			let activeLeaf = this.app.workspace.activeLeaf;
+			// 在当前活动的leaf中直接打开文件
+			if (activeLeaf) {
+				await activeLeaf.openFile(previousFile);
+			} else {
+				console.error("obsidian-review: No active leaf to open the file in.");
+			}
+		} else {
+			console.error("obsidian-review: The last opened file is not found or not a TFile.");
+		}
+	}
 }
