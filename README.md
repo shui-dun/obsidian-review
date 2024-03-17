@@ -41,44 +41,54 @@
 ```dataviewjs
 // 基础过滤得到的笔记
 let basicNotes = dv
-  .pages('"" and -"template" and -"计划" and -"assets"')
+  .pages('"" and -"assets"')
   .where(b => b.sr);
 
 // 待复习的笔记
 let toBeReviewedNotes = basicNotes
   .where(b => b.sr[2] <= dv.date('today'));
 
+// 今日复习的笔记
+let todayReviewedNotes = basicNotes
+  .where(b => b.ctime - 0 != dv.date('today') || b.sr[2] - 0 != dv.date('tomorrow')) // 不是今天创建的笔记
+  .where(b => b.sr[2] == dv.duration(`${Math.ceil(b.sr[1])}day`) + dv.date('today'));
+
 // 待复习笔记的数目
 let waitReviewCount = toBeReviewedNotes
-  .groupBy(b => true)
-  .map(b => b.rows.length).values[0];
-
-if (waitReviewCount == undefined)
-  waitReviewCount = 0;
+  .values
+  .reduce((sum, b) => sum + 1, 0);
 
 // 今日复习的笔记的数目
-let todayReviewedCount = basicNotes
-  .where(b => b.ctime - 0 != dv.date('today'))
-  .where(b => b.sr[2] - dv.duration(`${Math.ceil(b.sr[1])}day`) == dv.date('today'))
-  .groupBy(b => true)
-  .map(b => b.rows.length).values[0];
-  
-if (todayReviewedCount == undefined) 
-  todayReviewedCount = 0;
+let todayReviewedCount = todayReviewedNotes
+  .values
+  .reduce((sum, b) => sum + 1, 0);
 
-dv.paragraph(`###### **${waitReviewCount}** to rv, **${todayReviewedCount}** rvd`)
+// 今日复习的笔记的大小（KB）
+let todayReviewedSize = (todayReviewedNotes
+  .values
+  .reduce((sum, b) => sum + b.file.size, 0) / 1024).toFixed(0);
+
+let paragraph = dv.paragraph(`➤ **<code>NOTE</code>** ➤ **<code>${waitReviewCount} + ${todayReviewedCount} | ${todayReviewedSize}KB</code>**`);
+
+let showSurprise = false;
+paragraph.addEventListener("click", (evt) => {
+    if (!showSurprise) {
+        paragraph.innerHTML += " <b><code>Surprised ヽ(´▽`)/</code></b>";
+        showSurprise = true;
+    }
+});
 
 // 待复习笔记的列表
-dv.table(["Notes to be reviewd"], toBeReviewedNotes
+dv.table(["Pending Notes", "size"], toBeReviewedNotes
   .sort(b => b.sr[2])
-  .limit(7)
-  .map(b => [b.file.link])
+  .limit(10)
+  .map(b => [b.file.link, (b.file.size / 1024).toFixed(1)])
 );
 ```
 
-
 效果如下：
-![image-20220225230246425](assets/image-20220225230246425.png)
+
+![image-20240317211813759](assets/image-20240317211813759.png)
 
 ## 算法
 
