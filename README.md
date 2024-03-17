@@ -73,7 +73,7 @@ let paragraph = dv.paragraph(`➤ **<code>NOTE</code>** ➤ **<code>${waitReview
 let showSurprise = false;
 paragraph.addEventListener("click", (evt) => {
     if (!showSurprise) {
-        paragraph.innerHTML += " <b><code>Surprised ヽ(´▽`)/</code></b>";
+        paragraph.innerHTML += " <b><code>Surprise ヽ(´▽`)/</code></b>";
         showSurprise = true;
     }
 });
