@@ -114,8 +114,8 @@ export default class MyPlugin extends Plugin {
 	// 跳转到文件复习列表
 	async jumpToReviewList() {
 		let previousFilePath = this.app.workspace.getLastOpenFiles()[0];
-		// 如果上一个文件名不包含“review.md”，则返回
-		if (!previousFilePath.includes("review.md")) {
+		// 如果上一个文件名不包含“review.md” 或者 “note.md”，则返回
+		if (!previousFilePath.includes("review.md") && !previousFilePath.includes("note.md")) {
 			new Notice("Jump Disabled", 500);
 			return;
 		}
